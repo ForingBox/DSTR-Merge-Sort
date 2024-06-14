@@ -2,6 +2,7 @@
     "files.associations": {
         "ostream": "cpp",
         "iosfwd": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "chrono": "cpp"
     }
 }

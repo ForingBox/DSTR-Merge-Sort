@@ -4,8 +4,10 @@
 #include <sstream>  //for string operations || help parsing in CSV file
 #include <vector>   //for using 'vector' container from STL <<Standard Template Library>>
 #include <string>   //for using 'string' class
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 
 /* Merge Sort Concept
     1. separate an array into two sub arrays
@@ -129,7 +131,12 @@ int main() {
         return 1;
     }
 
+    auto start = high_resolution_clock::now();  //start timer
+
     mergeSort(sizes, 0, sizes.size() - 1);
+
+    auto stop = high_resolution_clock::now();   //stop timer
+    auto duration = duration_cast<microseconds>(stop - start);  //calculate duration
 
     ofstream outputFile("sorted_sizes_cpp.csv");
     if (!outputFile.is_open()) {
@@ -143,6 +150,7 @@ int main() {
     outputFile.close();
 
     cout << "Sorting complete. Check sorted_sizes_cpp.csv for results." << endl;
+    cout << "Time taken: " << duration.count() << " microseconds" << endl;
 
     return 0;
 }
