@@ -1,9 +1,9 @@
 // Merge Sort
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
+#include <fstream>  //for file input and output
+#include <sstream>  //for string operations || help parsing in CSV file
+#include <vector>   //for using 'vector' container from STL <<Standard Template Library>>
+#include <string>   //for using 'string' class
 
 using namespace std;
 
@@ -41,9 +41,9 @@ void mergeSort(vector<int>& arr, int left, int right);
 void merge(vector<int>& arr, int left, int mid, int right);
 
 void extractFile(vector<int>& sizes) {
-    ifstream file("mudah-apartment-kl-selangor mmz.csv");
+    ifstream file("mudah-apartment-kl-selangor mmz.csv");   //open file
     if (!file.is_open()) {
-        cerr << "Failed to open file." << endl;
+        cerr << "Failed to open file." << endl;             //print error if file not found or open
         return;
     }
 
@@ -52,7 +52,7 @@ void extractFile(vector<int>& sizes) {
     // Skip the header
     getline(file, line);
 
-    // Read and process only the J column (assuming it's the 10th column, 0-indexed)
+    // Read and process only the size column <<which is column 10>>
     while (getline(file, line)) {
         stringstream ss(line);
         string cell;
@@ -60,9 +60,9 @@ void extractFile(vector<int>& sizes) {
         while (getline(ss, cell, ',')) {
             if (column == 9) {  // Check if it's the 10th column
                 try {
-                    sizes.push_back(stoi(cell));
+                    sizes.push_back(stoi(cell));    //add to 'sizes' vector
                 } catch (const exception& e) {
-                    cerr << "Conversion error on input: " << cell << " - " << e.what() << endl;
+                    cerr << "Conversion error on input: " << cell << " - " << e.what() << endl; //cerr --> character error <<to display error messages>>
                 }
                 break;
             }
