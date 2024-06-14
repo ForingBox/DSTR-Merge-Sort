@@ -63,4 +63,5 @@ int extractFile(){
 
 int main(){
     extractFile();
+    return 0;
 }
