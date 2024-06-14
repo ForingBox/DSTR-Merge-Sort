@@ -1,6 +1,5 @@
 // Merge Sort
 #include <iostream>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -8,21 +7,47 @@
 
 using namespace std;
 
-//declaring prototype
-int extractFile();
-void mergeSort();
-void merge();
+/* Merge Sort Concept
+    1. separate an array into two sub arrays
+    2. sort each sub array before combining back
+    3. combine while sorting both sub array 
+        {the sort is done by comparing the number on the left to right} 
+        {if left > right == insert(right) }
+        {if left < right ==  insert(left) }*/
+
+/* eg: Given an array --> [ 1, 7, 3, 5, 2, 6, 4]
+break into sub arrays   --> a  = [ 1, 7, 3, 5 ]            || b  = [ 2, 6, 4 ] 
+keep breaking           --> a1 = [ 1, 7 ] / a2 = [ 3, 5 ]  || b1 = [ 2, 6 ] / b2 = [ 4 ] 
+begin sort              --> a1 = [ 1, 7 ] / a2 = [ 3, 5 ]  || b1 = [ 2, 6 ] / b2 = [ 4 ] 
+                        --> a1 = [1]                       || b1 = [2]
+                            a1 = [1, 3]                    || b1 = [2, 4]
+                            a1 = [1, 3, 5]                 || b1 = [2, 4, 6]
+                            a1 = [1, 3, 5, 7]              || b1 = [2, 4, 6]
+combine both array while sorting it 
+a = [1, 3, 5, 7] & b = [2, 4, 6]
+sortResult  = [1]                       '1' from a1 -- 1 < 2
+            = [1, 2]                    '2' from b1 -- 3 > 2
+            = [1, 2, 3]                 '3' from a1 -- 3 < 4
+            = [1, 2, 3, 4]              '4' from b1 -- 5 > 4
+            = [1, 2, 3, 4, 5]           '5' from a1 -- 5 < 6
+            = [1, 2, 3, 4, 5, 6]        '6' from b1 -- 7 > 6
+            = [1, 2, 3, 4, 5, 6, 7]     '7' from a1 */
 
 
-int extractFile(){
+
+// Function prototypes
+void extractFile(vector<int>& sizes);
+void mergeSort(vector<int>& arr, int left, int right);
+void merge(vector<int>& arr, int left, int mid, int right);
+
+void extractFile(vector<int>& sizes) {
     ifstream file("mudah-apartment-kl-selangor mmz.csv");
-        if (!file.is_open()) {
-            cerr << "Failed to open file." << endl;
-            return 1;
-        }
+    if (!file.is_open()) {
+        cerr << "Failed to open file." << endl;
+        return;
+    }
 
     string line;
-    vector<int> sizes;
 
     // Skip the header
     getline(file, line);
@@ -31,41 +56,93 @@ int extractFile(){
     while (getline(file, line)) {
         stringstream ss(line);
         string cell;
-        int column = 0;  // Start counting columns from 0
+        int column = 0;
         while (getline(ss, cell, ',')) {
             if (column == 9) {  // Check if it's the 10th column
                 try {
                     sizes.push_back(stoi(cell));
-                } catch (const std::exception& e) {
+                } catch (const exception& e) {
                     cerr << "Conversion error on input: " << cell << " - " << e.what() << endl;
                 }
-                break;  // Stop reading more cells once we get the 10th column
+                break;
             }
             column++;
         }
     }
     file.close();
+}
 
-    // Optionally sort the sizes
-    // sort(sizes.begin(), sizes.end());
+void merge(vector<int>& arr, int left, int mid, int right) {
+    int n1 = mid - left + 1;
+    int n2 = right - mid;
 
-    // Output the data to a new file
-    ofstream output("sorted_sizes_cpp.csv");
-    if (!output.is_open()) {
+    vector<int> L(n1);
+    vector<int> R(n2);
+
+    for (int i = 0; i < n1; ++i)
+        L[i] = arr[left + i];
+    for (int j = 0; j < n2; ++j)
+        R[j] = arr[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            arr[k] = L[i];
+            ++i;
+        } else {
+            arr[k] = R[j];
+            ++j;
+        }
+        ++k;
+    }
+
+    while (i < n1) {
+        arr[k] = L[i];
+        ++i;
+        ++k;
+    }
+
+    while (j < n2) {
+        arr[k] = R[j];
+        ++j;
+        ++k;
+    }
+}
+
+void mergeSort(vector<int>& arr, int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2;
+
+        mergeSort(arr, left, mid);
+        mergeSort(arr, mid + 1, right);
+
+        merge(arr, left, mid, right);
+    }
+}
+
+int main() {
+    vector<int> sizes;
+    extractFile(sizes);
+
+    if (sizes.empty()) {
+        cerr << "No sizes to sort" << endl;
+        return 1;
+    }
+
+    mergeSort(sizes, 0, sizes.size() - 1);
+
+    ofstream outputFile("sorted_sizes_cpp.csv");
+    if (!outputFile.is_open()) {
         cerr << "Failed to open output file." << endl;
         return 1;
     }
 
-    for (int size : sizes) {
-        output << size << endl;
+    for (const int& size : sizes) {
+        outputFile << size << endl;
     }
-    output.close();
+    outputFile.close();
 
-    cout << "Sizes extracted and saved to sorted_sizes_cpp.csv" << endl;
-    return 1;
-}
+    cout << "Sorting complete. Check sorted_sizes_cpp.csv for results." << endl;
 
-int main(){
-    extractFile();
     return 0;
 }
