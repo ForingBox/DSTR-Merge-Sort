@@ -1,3 +1,4 @@
+// Merge Sort
 #include <iostream>
 #include <iostream>
 #include <fstream>
@@ -7,6 +8,10 @@
 
 using namespace std;
 
+//declaring prototype
+int extractFile();
+void mergeSort();
+void merge();
 
 
 int extractFile(){
@@ -51,7 +56,6 @@ int extractFile(){
         return 1;
     }
 
-    output << "size\n";  // Write header
     for (int size : sizes) {
         output << size << endl;
     }
