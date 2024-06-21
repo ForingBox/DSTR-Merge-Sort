@@ -1,2 +1,2 @@
 # DSTR-Merge-Sort
-pepo who can see this is gay
+Sorting data with merge sort algorithm
