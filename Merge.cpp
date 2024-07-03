@@ -3,7 +3,8 @@
 #include <fstream>  //for file input and output
 #include <sstream>  //for string operations || help parsing in CSV file
 #include <vector>   //for using 'vector' container from STL <<Standard Template Library>>
-#include <string>   //for using 'string' class
+#include <algorithm>
+#include <tuple>
 #include <chrono>
 
 using namespace std;
@@ -35,122 +36,146 @@ sortResult  = [1]                       '1' from a1 -- 1 < 2
             = [1, 2, 3, 4, 5, 6]        '6' from b1 -- 7 > 6
             = [1, 2, 3, 4, 5, 6, 7]     '7' from a1 */
 
+// Function declarations
+void extractFile();
+void merge(vector<tuple<int,int,int>>& arr, int left, int mid, int right);
+void mergeSort(vector<tuple<int,int,int>>& arr, int left, int right);
 
+// Function to extract data from a file, sort it, and write to another file
+void extractFile() {
+    // Open the input file
+    ifstream input_file("mudah-apartment-kl-selangor mmz.csv");
+    if (!input_file.is_open()) {
+        cerr << "Failed to open input file." << endl;
+        return;
+    }
 
-// Function prototypes
-void extractFile(vector<int>& sizes);
-void mergeSort(vector<int>& arr, int left, int right);
-void merge(vector<int>& arr, int left, int mid, int right);
-
-void extractFile(vector<int>& sizes) {
-    ifstream file("mudah-apartment-kl-selangor mmz.csv");   //open file
-    if (!file.is_open()) {
-        cerr << "Failed to open file." << endl;             //print error if file not found or open
+    // Open the output file
+    ofstream output_file("sorted_size.csv");
+    if (!output_file.is_open()) {
+        cerr << "Failed to create/open output file." << endl;
+        input_file.close();
         return;
     }
 
     string line;
 
-    // Skip the header
-    getline(file, line);
+    // Skip the header line in the input file
+    getline(input_file, line);
 
-    // Read and process only the size column <<which is column 10>>
-    while (getline(file, line)) {
+    vector<tuple<int,int,int>> tuples;  // Vector to store the tuples
+
+    // Process each line in the input file
+    while (getline(input_file, line)) {
         stringstream ss(line);
         string cell;
         int column = 0;
+
+        int col7 = 0, col9 = 0, col10 = 0;  // Variables to store the 7th, 9th, and 10th column values
         while (getline(ss, cell, ',')) {
-            if (column == 9) {  // Check if it's the 10th column
-                try {
-                    sizes.push_back(stoi(cell));    //add to 'sizes' vector
-                } catch (const exception& e) {
-                    cerr << "Conversion error on input: " << cell << " - " << e.what() << endl; //cerr --> character error <<to display error messages>>
+            column++;
+            try {
+                if (column == 7) {
+                    col7 = stoi(cell);  // Convert 7th column to integer
+                } else if (column == 9) {
+                    col9 = stoi(cell);  // Convert 9th column to integer
+                } else if (column == 10) {
+                    col10 = stoi(cell);  // Convert 10th column to integer
                 }
+            } catch (const invalid_argument& e) {
+                cerr << "Invalid data at column " << column << ": " << cell << endl;
+                col7 = col9 = col10 = 0;  // Set to 0 if there's invalid data
                 break;
             }
-            column++;
+        }
+
+        // Only add to tuples if all columns were successfully parsed
+        if (col7 != 0 && col9 != 0 && col10 != 0) {
+            tuples.push_back(make_tuple(col7, col9, col10));
         }
     }
-    file.close();
+
+    input_file.close();  // Close the input file after reading all lines
+
+    auto start = high_resolution_clock::now();  // Start the timer
+
+    // Sort the vector of tuples using mergeSort
+    mergeSort(tuples, 0, tuples.size() - 1);
+
+    auto stop = high_resolution_clock::now();   // Stop the timer
+    auto duration = duration_cast<microseconds>(stop - start);  // Calculate the duration
+
+    // Write sorted data to the output file
+    for (const auto& tuple : tuples) {
+        output_file << get<0>(tuple) << "," << get<1>(tuple) << "," << get<2>(tuple) << endl;
+    }
+
+    output_file.close();  // Close the output file after writing all sorted data
+
+    cout << "Sorting and writing to sorted_size.csv completed" << endl;
+    cout << "Time taken: " << duration.count() << " microseconds" << endl;  // Output the duration
 }
 
-void merge(vector<int>& arr, int left, int mid, int right) {
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
+// Merge function to merge two halves of a vector
+void merge(vector<tuple<int,int,int>>& arr, int left, int mid, int right) {
+    int n1 = mid - left + 1;  // Size of the left subarray
+    int n2 = right - mid;  // Size of the right subarray
 
-    vector<int> L(n1);
-    vector<int> R(n2);
+    // Create temporary subarrays
+    vector<tuple<int,int,int>> L(n1);
+    vector<tuple<int,int,int>> R(n2);
 
+    // Copy data to temporary subarrays L[] and R[]
     for (int i = 0; i < n1; ++i)
         L[i] = arr[left + i];
     for (int j = 0; j < n2; ++j)
         R[j] = arr[mid + 1 + j];
 
+    // Merge the temporary subarrays back into arr[left..right]
     int i = 0, j = 0, k = left;
     while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
+        // Comparison based on col7, then col9, then col10
+        if (get<0>(L[i]) < get<0>(R[j]) ||
+            (get<0>(L[i]) == get<0>(R[j]) && get<1>(L[i]) < get<1>(R[j])) ||
+            (get<0>(L[i]) == get<0>(R[j]) && get<1>(L[i]) == get<1>(R[j]) && get<2>(L[i]) < get<2>(R[j]))) {
             arr[k] = L[i];
-            ++i;
+            i++;
         } else {
             arr[k] = R[j];
-            ++j;
+            j++;
         }
-        ++k;
+        k++;
     }
 
+    // Copy the remaining elements of L[], if any
     while (i < n1) {
         arr[k] = L[i];
-        ++i;
-        ++k;
+        i++;
+        k++;
     }
 
+    // Copy the remaining elements of R[], if any
     while (j < n2) {
         arr[k] = R[j];
-        ++j;
-        ++k;
+        j++;
+        k++;
     }
 }
 
-void mergeSort(vector<int>& arr, int left, int right) {
+// Merge sort function to sort an array
+void mergeSort(vector<tuple<int,int,int>>& arr, int left, int right) {
     if (left < right) {
-        int mid = left + (right - left) / 2;
+        int mid = left + (right - left) / 2;  // Find the middle point
 
-        mergeSort(arr, left, mid);
-        mergeSort(arr, mid + 1, right);
+        mergeSort(arr, left, mid);  // Sort first half
+        mergeSort(arr, mid + 1, right);  // Sort second half
 
-        merge(arr, left, mid, right);
+        merge(arr, left, mid, right);  // Merge the sorted halves
     }
 }
 
 int main() {
-    vector<int> sizes;
-    extractFile(sizes);
-
-    if (sizes.empty()) {
-        cerr << "No sizes to sort" << endl;
-        return 1;
-    }
-
-    auto start = high_resolution_clock::now();  //start timer
-
-    mergeSort(sizes, 0, sizes.size() - 1);
-
-    auto stop = high_resolution_clock::now();   //stop timer
-    auto duration = duration_cast<microseconds>(stop - start);  //calculate duration
-
-    ofstream outputFile("sorted_sizes_cpp.csv");
-    if (!outputFile.is_open()) {
-        cerr << "Failed to open output file." << endl;
-        return 1;
-    }
-
-    for (const int& size : sizes) {
-        outputFile << size << endl;
-    }
-    outputFile.close();
-
-    cout << "Sorting complete. Check sorted_sizes_cpp.csv for results." << endl;
-    cout << "Time taken: " << duration.count() << " microseconds" << endl;
+    extractFile();  // Call the extractFile function to process the file
 
     return 0;
 }
