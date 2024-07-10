@@ -192,13 +192,8 @@ int main() {
 
     auto start = high_resolution_clock::now();
 
-    newList.sort();
-
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
-
-    cout << "Sorted list: ";
-    //newList.display();
 
     cout << "Time taken for sorting: " << duration.count() << " microseconds" << endl;
 
